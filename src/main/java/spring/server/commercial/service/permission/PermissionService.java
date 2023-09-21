@@ -11,6 +11,7 @@ import org.springframework.security.acls.jdbc.JdbcMutableAclService;
 import org.springframework.security.acls.model.AccessControlEntry;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.NotFoundException;
+import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.acls.model.Sid;
 import org.springframework.security.core.Authentication;
@@ -31,28 +32,57 @@ import spring.server.commercial.service.user.UserService;
 
 @Service
 @RequiredArgsConstructor
-@EnableAsync
 public class PermissionService {
 	private final JdbcMutableAclService aclService;
 	private final UserService userService;
 	private final JwtAuthenticationProvider jwtAuthenticationProvider;
 
 	@Transactional
-	@Async
-	public void setOwner(ObjectIdentityImpl objectIdentityImpl, String owner) {
+	public void setOwner(ObjectIdentityImpl objectIdentityImpl) {
 
-		Authentication authentication = jwtAuthenticationProvider.authenticate(new AuthenticationJwtToken(owner, null));
-		authentication.setAuthenticated(true);
-		SecurityContextHolder.getContext().setAuthentication(authentication);
 		MutableAcl acl = null;
 		try {
 			acl = (MutableAcl) aclService.readAclById(objectIdentityImpl);
 		} catch (NotFoundException e) {
 			acl = aclService.createAcl(objectIdentityImpl);
 		}
-		Sid sid = new PrincipalSid(authentication);
+		Sid sid = new PrincipalSid(getAuthentication());
 		acl.setOwner(sid);
 		aclService.updateAcl(acl);
+
+	}
+
+	public void setPermissionForUser(ObjectIdentityImpl objectIdentityImpl, Permission permission, boolean granting,
+			int id) {
+		String email = userService.findById(id).get().getEmail();
+		if (checkOwner(objectIdentityImpl) || isAdmin()) {
+			Authentication authentication = jwtAuthenticationProvider
+					.authenticate(new AuthenticationJwtToken(email, null));
+			authentication.setAuthenticated(true);
+			SecurityContextHolder.getContext().setAuthentication(authentication);
+			MutableAcl acl = null;
+			try {
+				acl = (MutableAcl) aclService.readAclById(objectIdentityImpl);
+			} catch (NotFoundException e) {
+				acl = aclService.createAcl(objectIdentityImpl);
+			}
+			Sid sid = new PrincipalSid(authentication);
+			acl.insertAce(acl.getEntries().size(), permission, sid, granting);
+			aclService.updateAcl(acl);
+		}
+	}
+
+	public boolean checkOwner(ObjectIdentityImpl objectIdentityImpl) {
+		MutableAcl acl = null;
+		try {
+			acl = (MutableAcl) aclService.readAclById(objectIdentityImpl);
+		} catch (NotFoundException e) {
+			return false;
+		}
+		if (acl.getOwner().equals(new PrincipalSid(getAuthentication()))) {
+			return true;
+		}
+		return false;
 	}
 
 	@Transactional
@@ -89,7 +119,26 @@ public class PermissionService {
 		return true;
 	}
 
-	private Authentication getAuthentication() {
+	public Authentication getAuthentication() {
 		return SecurityContextHolder.getContext().getAuthentication();
+	}
+
+	private boolean isAdmin() {
+		if (userService.findByEmail(getAuthentication().getPrincipal().toString()).get() instanceof Admin)
+			return true;
+		else
+			return false;
+	}
+
+	public void deleteObject(ObjectIdentityImpl objectIdentityImpl) {
+		MutableAcl acl = null;
+		try {
+			acl = (MutableAcl) aclService.readAclById(objectIdentityImpl);
+
+			aclService.deleteAcl(objectIdentityImpl, true);
+		} catch (NotFoundException e) {
+
+		}
+
 	}
 }

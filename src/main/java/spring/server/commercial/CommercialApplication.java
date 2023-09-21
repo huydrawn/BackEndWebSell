@@ -15,10 +15,9 @@ import spring.server.commercial.repository.product.ProductTypeRepository;
 @SpringBootApplication
 @EnableCaching
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity 
 @EnableJpaAuditing
 public class CommercialApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(CommercialApplication.class, args);
 

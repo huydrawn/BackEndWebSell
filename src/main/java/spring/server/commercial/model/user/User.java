@@ -58,7 +58,6 @@ public class User implements UserDetails {
 	private String name;
 	private Date birth_day;
 	private String email;
-	private boolean hasOwener;
 	@Enumerated
 	private Gender gender;
 	@Embedded

@@ -29,13 +29,7 @@ public abstract class AuthenticationResolver {
 		User user = this.valid(request);
 		// set owner for this user for the first login
 
-		if (!user.isHasOwener()) {
-
-			ObjectIdentityImpl oi = new ObjectIdentityImpl(User.class, user.getId());
-			permissionService.setOwner(oi, user.getEmail());
-			user.setHasOwener(true);
-			userService.save(user);
-		}
+		
 		return jwtUtils.gennerateJwtToken(user);
 
 	}

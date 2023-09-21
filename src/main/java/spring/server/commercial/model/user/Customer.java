@@ -7,6 +7,9 @@ import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
@@ -36,16 +39,17 @@ public class Customer extends User {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	@ElementCollection
+	@ElementCollection(fetch = FetchType.LAZY)
 	private List<Product> favoriteProducts;
 	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private List<Comment> comments;
-	@OneToOne
+	@OneToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
 	private Cart cart;
-	@OneToMany(cascade = { CascadeType.DETACH, CascadeType.PERSIST }, orphanRemoval = false)
+	@OneToMany(fetch = FetchType.LAZY, orphanRemoval = false)
 	private List<Order> orders;
 
-	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "seller")
+	@OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.ALL, CascadeType.REMOVE })
+	@JsonManagedReference
 	private List<Product> sellProducts;
 
 	@Override

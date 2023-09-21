@@ -1,9 +1,10 @@
- package spring.server.commercial.security;
+package spring.server.commercial.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.reactive.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -38,7 +39,9 @@ public class SecurityConfig {
 		http.csrf(csrf -> csrf.disable()).cors();
 		http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 		http.authorizeHttpRequests(request -> request.requestMatchers(PathConfig.getPathPermitAll()).permitAll()
+				.requestMatchers(HttpMethod.GET, PathConfig.getPathPermitAllForGetMethod()).permitAll()
 				.requestMatchers(PathRequest.toStaticResources().toString()).permitAll().anyRequest().authenticated());
+
 		http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 		return http.build();
 	}

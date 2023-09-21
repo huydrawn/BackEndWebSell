@@ -19,6 +19,7 @@ import spring.server.commercial.dto.user.UpdateUserDTO;
 import spring.server.commercial.dto.user.UserInfomationDTO;
 import spring.server.commercial.mapper.user.UserMapper;
 import spring.server.commercial.model.account.Account;
+import spring.server.commercial.model.user.Customer;
 import spring.server.commercial.model.user.User;
 import spring.server.commercial.repository.user.UserRepository;
 
@@ -76,5 +77,14 @@ public class UserServiceImpl implements UserService {
 		user.setImages(ConvertFile.bytesToBlob(avatar));
 		userRepository.save(user);
 
+	}
+
+	@Override
+	public Customer findCustommerByEmail(String email) {
+		Optional<User> user = userRepository.findByEmail(email);
+		if(user.isPresent() && user.get() instanceof Customer cus) {
+			return cus;
+		}
+		return null;
 	}
 }

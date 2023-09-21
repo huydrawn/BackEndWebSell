@@ -10,6 +10,7 @@ import spring.server.commercial.exception.registeration.RegisterationException;
 import spring.server.commercial.exception.vertificate_email.EmailExistedException;
 import spring.server.commercial.model.account.NormalAccout;
 import spring.server.commercial.model.account.StatusAccount;
+import spring.server.commercial.model.cart.Cart;
 import spring.server.commercial.model.user.Customer;
 import spring.server.commercial.model.user.User;
 import spring.server.commercial.service.account.AccountService;
@@ -39,13 +40,15 @@ public class RegisterService {
 				.password(passwordEncoder.encode(request.getPassword())).status(StatusAccount.Unauthozied).build();
 		// create user to save
 		// above account is injected
-		User user = Customer.builder().build();
+		User user = Customer.builder().cart(new Cart()).build();
 		user.setAccount(account);
 		user.setEmail(request.getEmail());
 
+
 		// check if we have had a EmailVertifycation of this email
+		// if have mail vertification throw Exception
 		vertificateEmailService.checkMailVertificationExists(request.getEmail());
-		System.out.println("Ok");
+		
 		// send Email Vertification for User
 		vertificateEmailService.sendMailVertification(request.getEmail());
 		// Save user

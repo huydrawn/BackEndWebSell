@@ -47,6 +47,16 @@ public class JwtFilter extends OncePerRequestFilter {
 			}
 		}
 
+		if (request.getMethod().equalsIgnoreCase("GET")) {
+
+			for (var x : PathConfig.getPathPermitAllForGetMethod()) {
+				if (new AntPathMatcher().match(x, request.getServletPath())) {
+					isCheck = true;
+
+				}
+			}
+		}
+
 		if (isCheck) {
 			try {
 				String token = getTokenFroRequest(request);
@@ -69,7 +79,7 @@ public class JwtFilter extends OncePerRequestFilter {
 	}
 
 	private String getTokenFroRequest(HttpServletRequest request) throws BearerTokenException {
-		
+
 		String bearerToken = request.getHeader("Authorization");
 		if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
 			return bearerToken.substring(7);

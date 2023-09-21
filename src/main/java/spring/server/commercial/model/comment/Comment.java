@@ -14,6 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import spring.server.commercial.model.product.Product;
+import spring.server.commercial.model.user.Customer;
 import spring.server.commercial.model.user.User;
 
 @Data
@@ -27,7 +28,7 @@ public class Comment {
 	private String comment;
 	private int rate;
 	@ManyToOne
-	private User user;
+	private Customer user;
 	@OneToOne
 	private Product product;
 	@CreationTimestamp

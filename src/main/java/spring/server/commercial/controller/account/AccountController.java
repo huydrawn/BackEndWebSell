@@ -21,7 +21,7 @@ import spring.server.commercial.service.user.UserService;
 @CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true", methods = { RequestMethod.DELETE,
 		RequestMethod.GET, RequestMethod.POST }, allowedHeaders = "*")
 public class AccountController {
-
+ 
 	private final UserService userService;
 
 	@GetMapping

@@ -9,11 +9,12 @@ import javax.sql.rowset.serial.SerialException;
 import spring.server.commercial.dto.user.UpdateUserDTO;
 import spring.server.commercial.dto.user.UserInfomationDTO;
 import spring.server.commercial.model.account.Account;
+import spring.server.commercial.model.user.Customer;
 import spring.server.commercial.model.user.User;
 
 public interface UserService {
 	public Optional<User> findByEmail(String email);
-
+	public Customer findCustommerByEmail(String email);
 	public Optional<User> findByAccount(Account account);
 
 	public boolean existsByEmail(String email);

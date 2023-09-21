@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import spring.server.commercial.dto.product.type.IdAndNameProductType;
 import spring.server.commercial.dto.product.type.ProductTypeResponseDTO;
 import spring.server.commercial.mapper.product.type.ProductTypeMapper;
 import spring.server.commercial.model.product.ProductType;
@@ -22,7 +23,7 @@ public class ProductTypeServiceImpl implements ProductTypeService {
 	}
 
 	@Override
-	public List<ProductTypeResponseDTO> responseProductsType() {
+	public List<ProductTypeResponseDTO> getAll() {
 		List<ProductType> productTypes = productTypeRepository.findAll();
 
 		return productTypes.stream().map(ProductTypeMapper::productTypeToProductTypeResponseDTO).toList();
@@ -38,6 +39,18 @@ public class ProductTypeServiceImpl implements ProductTypeService {
 	public Optional<ProductType> findByName(String name) {
 		// TODO Auto-generated method stub
 		return productTypeRepository.findByName(name);
+	}
+
+	@Override
+	public List<IdAndNameProductType> findAllNameAndId() {
+		// TODO Auto-generated method stub
+		return productTypeRepository.findAllBy();
+	}
+
+	@Override
+	public ProductType findById(Integer valueOf) {
+		// TODO Auto-generated method stub
+		return productTypeRepository.findById(valueOf).get();
 	}
 
 }

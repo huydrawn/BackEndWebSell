@@ -1,5 +1,5 @@
 package spring.server.commercial.controller.profile;
-
+ 
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

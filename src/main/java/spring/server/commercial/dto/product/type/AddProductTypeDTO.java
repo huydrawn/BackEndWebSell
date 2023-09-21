@@ -5,7 +5,7 @@ import org.springframework.web.multipart.MultipartFile;
 import lombok.Data;
 
 @Data
-public class AddProductTypeDTO {
+public class AddProductTypeDTO { 
 	private String name;
 	private MultipartFile image;
 }
