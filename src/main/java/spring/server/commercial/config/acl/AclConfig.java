@@ -7,7 +7,6 @@ import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
-import org.springframework.security.acls.AclPermissionEvaluator;
 import org.springframework.security.acls.domain.AclAuthorizationStrategy;
 import org.springframework.security.acls.domain.AclAuthorizationStrategyImpl;
 import org.springframework.security.acls.domain.ConsoleAuditLogger;
@@ -21,6 +20,7 @@ import org.springframework.security.acls.model.PermissionGrantingStrategy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @Configuration
+//@EnableMethodSecurity(prePostEnabled = true)
 public class AclConfig {
 
 	@Autowired
@@ -45,7 +45,7 @@ public class AclConfig {
 
 	@Bean
 	public AclAuthorizationStrategy aclAuthorizationStrategy() {
-		return new AclAuthorizationStrategyImpl(new SimpleGrantedAuthority("ROLE_ADMIN"));
+		return new AclAuthorizationStrategyImpl(new SimpleGrantedAuthority("ROLE_CUSTOMMER"));
 	}
 
 	@Bean
@@ -61,11 +61,12 @@ public class AclConfig {
 
 	@Bean
 	public JdbcMutableAclService aclService() {
+
 		JdbcMutableAclService jdbcMutableAclService = new JdbcMutableAclService(dataSource, lookupStrategy(),
 				aclCache());
 		jdbcMutableAclService.setSidIdentityQuery("SELECT @@IDENTITY"); // Chỉ định truy vấn lấy ID của SID từ MySQL
 		jdbcMutableAclService.setClassIdentityQuery("SELECT @@IDENTITY"); // Chỉ định truy vấn lấy ID của class từ MySQL
-		jdbcMutableAclService.setSidIdentityQuery("SELECT @@IDENTITY"); // Chỉ định truy vấn lấy ID của ACL từ MySQL
+		jdbcMutableAclService.setAclClassIdSupported(true);// Chỉ định truy vấn lấy ID của ACL từ MySQL
 		return jdbcMutableAclService;
 	}
 }
