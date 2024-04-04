@@ -8,6 +8,7 @@ import lombok.Data;
 @Data
 @Builder
 public class GroupProductDTO {
+	private int id;
 	private int inStock;
 	private BigDecimal price;
 	private String image;
