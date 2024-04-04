@@ -52,7 +52,7 @@ public class User implements UserDetails {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.TABLE)
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private int id;
 	private String idUser;
 	private String name;

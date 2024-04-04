@@ -15,13 +15,11 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import spring.server.commercial.model.cart.Cart;
 import spring.server.commercial.model.comment.Comment;
 import spring.server.commercial.model.order.Order;
 import spring.server.commercial.model.product.Product;
@@ -43,9 +41,9 @@ public class Customer extends User {
 	private List<Product> favoriteProducts;
 	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private List<Comment> comments;
-	@OneToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
-	private Cart cart;
+	
 	@OneToMany(fetch = FetchType.LAZY, orphanRemoval = false)
+	@JsonBackReference
 	private List<Order> orders;
 
 	@OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.ALL, CascadeType.REMOVE })

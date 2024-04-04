@@ -26,7 +26,7 @@ import spring.server.commercial.model.user.User;
 @NoArgsConstructor
 public class Account {
 	@Id
-	@GeneratedValue(strategy = GenerationType.TABLE)
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private int id;
 	@CreationTimestamp
 	private LocalDateTime create_At;

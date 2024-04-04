@@ -7,13 +7,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 
 import lombok.RequiredArgsConstructor;
@@ -37,7 +35,7 @@ public class SecurityConfig {
 //		http.csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
 //				.csrfTokenRequestHandler(requestHandler));
 		http.csrf(csrf -> csrf.disable()).cors();
-		http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+//		http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 		http.authorizeHttpRequests(request -> request.requestMatchers(PathConfig.getPathPermitAll()).permitAll()
 				.requestMatchers(HttpMethod.GET, PathConfig.getPathPermitAllForGetMethod()).permitAll()
 				.requestMatchers(PathRequest.toStaticResources().toString()).permitAll().anyRequest().authenticated());
@@ -50,7 +48,6 @@ public class SecurityConfig {
 	public void authenticationManager(AuthenticationManagerBuilder authenticationManagerBuilder) {
 		authenticationManagerBuilder.authenticationProvider(jwtAuthenticationProvider);
 	}
-
 	@Bean
 	public PasswordEncoder encoder() {
 		return new BCryptPasswordEncoder();
