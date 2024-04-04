@@ -1,32 +1,25 @@
 package spring.server.commercial.service.permission;
 
-import java.util.Collection;
-import java.util.Collections;
-
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.jdbc.JdbcMutableAclService;
 import org.springframework.security.acls.model.AccessControlEntry;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.NotFoundException;
-import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.acls.model.Sid;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import spring.server.commercial.exception.permission.NotFoundObjIdentifyException;
+import spring.server.commercial.exception.permission.NotOwnerException;
 import spring.server.commercial.exception.permission.PermissionException;
 import spring.server.commercial.model.user.Admin;
-import spring.server.commercial.security.AuthenticationJwtToken;
+import spring.server.commercial.security.JwtTokenAuthentication;
 import spring.server.commercial.security.provider_auth.JwtAuthenticationProvider;
 import spring.server.commercial.service.user.UserService;
 
@@ -37,7 +30,7 @@ public class PermissionService {
 	private final UserService userService;
 	private final JwtAuthenticationProvider jwtAuthenticationProvider;
 
-	@Transactional
+	
 	public void setOwner(ObjectIdentityImpl objectIdentityImpl) {
 
 		MutableAcl acl = null;
@@ -45,9 +38,11 @@ public class PermissionService {
 			acl = (MutableAcl) aclService.readAclById(objectIdentityImpl);
 		} catch (NotFoundException e) {
 			acl = aclService.createAcl(objectIdentityImpl);
+			
 		}
 		Sid sid = new PrincipalSid(getAuthentication());
 		acl.setOwner(sid);
+		acl.insertAce(acl.getEntries().size(), BasePermission.ADMINISTRATION , sid ,true );
 		aclService.updateAcl(acl);
 
 	}
@@ -57,7 +52,7 @@ public class PermissionService {
 		String email = userService.findById(id).get().getEmail();
 		if (checkOwner(objectIdentityImpl) || isAdmin()) {
 			Authentication authentication = jwtAuthenticationProvider
-					.authenticate(new AuthenticationJwtToken(email, null));
+					.authenticate(new JwtTokenAuthentication(email, null));
 			authentication.setAuthenticated(true);
 			SecurityContextHolder.getContext().setAuthentication(authentication);
 			MutableAcl acl = null;
@@ -79,24 +74,28 @@ public class PermissionService {
 		} catch (NotFoundException e) {
 			return false;
 		}
+		
 		if (acl.getOwner().equals(new PrincipalSid(getAuthentication()))) {
 			return true;
 		}
 		return false;
 	}
 
+	public boolean isOwner(ObjectIdentityImpl objectIdentityImpl) throws NotOwnerException {
+		if (this.checkOwner(objectIdentityImpl)) {
+			return true;
+		} else {
+			throw new NotOwnerException("This user not have owner of this object");
+		}
+	}
+
 	@Transactional
 	public boolean checkPermission(ObjectIdentityImpl objectIdentityImpl, Permission permission)
-			throws PermissionException {
+			throws PermissionException { 
 		MutableAcl acl = null;
 		if (!getAuthentication().isAuthenticated()) {
 			throw new PermissionException("Haven't authenticate");
 		}
-
-		if (userService.findByEmail(getAuthentication().getPrincipal().toString()).get() instanceof Admin) {
-			return true;
-		}
-
 		try {
 			acl = (MutableAcl) aclService.readAclById(objectIdentityImpl);
 		} catch (NotFoundException e) {
@@ -131,6 +130,7 @@ public class PermissionService {
 	}
 
 	public void deleteObject(ObjectIdentityImpl objectIdentityImpl) {
+		
 		MutableAcl acl = null;
 		try {
 			acl = (MutableAcl) aclService.readAclById(objectIdentityImpl);
