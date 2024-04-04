@@ -6,8 +6,6 @@ import java.util.Iterator;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
@@ -20,14 +18,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import spring.server.commercial.config.jwt.JwtUtils;
 import spring.server.commercial.config.path.PathConfig;
+import spring.server.commercial.config.websocket.WebSocketConfig;
 import spring.server.commercial.exception.bearertoken.BearerTokenException;
 import spring.server.commercial.exception.bearertoken.BearerTokenMissingException;
 import spring.server.commercial.exception.jwt.JwtTokenException;
-import spring.server.commercial.model.user.User;
-import spring.server.commercial.security.AuthenticationJwtToken;
+import spring.server.commercial.security.JwtTokenAuthentication;
 import spring.server.commercial.security.provider_auth.JwtAuthenticationProvider;
-import spring.server.commercial.security.provider_auth.JwtUserDetailsService;
-import spring.server.commercial.service.user.UserService;
 
 @Service
 @RequiredArgsConstructor
@@ -35,30 +31,16 @@ public class JwtFilter extends OncePerRequestFilter {
 
 	private final JwtUtils jwtUtils;
 	private final JwtAuthenticationProvider jwtAuthenticationProvider;
+	
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-		boolean isCheck = true;
-		for (var x : PathConfig.getPathPermitAll()) {
-			if (new AntPathMatcher().match(x, request.getServletPath())) {
-				isCheck = false;
-				break;
-			}
-		}
 
-		if (request.getMethod().equalsIgnoreCase("GET")) {
+		if (PathConfig.checkPathForAuthentication(request.getServletPath(), request.getMethod())) {
 
-			for (var x : PathConfig.getPathPermitAllForGetMethod()) {
-				if (new AntPathMatcher().match(x, request.getServletPath())) {
-					isCheck = true;
-
-				}
-			}
-		}
-
-		if (isCheck) {
 			try {
+				
 				String token = getTokenFroRequest(request);
 
 				if (StringUtils.hasText(token) && jwtUtils.valiadJwtToken(token)) {
@@ -66,7 +48,7 @@ public class JwtFilter extends OncePerRequestFilter {
 					String email = jwtUtils.getSubjectFromJwtToken(token);
 
 					Authentication authentication = jwtAuthenticationProvider
-							.authenticate(new AuthenticationJwtToken(email, null));
+							.authenticate(new JwtTokenAuthentication(email, null));
 					authentication.setAuthenticated(true);
 					SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -80,6 +62,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
 	private String getTokenFroRequest(HttpServletRequest request) throws BearerTokenException {
 
+		if (PathConfig.matcherConnectWebSocketPath(request.getServletPath()) && request.getHeader("Authorization") == null ) {
+			return request.getParameter("token").toString(); 
+		}
 		String bearerToken = request.getHeader("Authorization");
 		if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
 			return bearerToken.substring(7);

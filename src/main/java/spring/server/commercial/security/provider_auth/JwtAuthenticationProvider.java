@@ -7,8 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import spring.server.commercial.model.user.User;
-import spring.server.commercial.security.AuthenticationJwtToken;
+import spring.server.commercial.security.JwtTokenAuthentication;
 
 @Service
 @RequiredArgsConstructor
@@ -20,13 +19,13 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
 
 		String email = authentication.getPrincipal().toString();
 		UserDetails user = jwtUserDetailsService.loadUserByUsername(email);
-		return new AuthenticationJwtToken(email, user.getAuthorities());
+		return new JwtTokenAuthentication(email, user.getAuthorities());
 	}
 
 	@Override
 	public boolean supports(Class<?> authentication) {
 		// TODO Auto-generated method stub
-		return authentication.equals(AuthenticationJwtToken.class);
+		return authentication.equals(JwtTokenAuthentication.class);
 	}
 
 }
