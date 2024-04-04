@@ -4,7 +4,6 @@ import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Base64.Decoder;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -21,6 +20,8 @@ import spring.server.commercial.dto.product.AttributeGroupDTO;
 import spring.server.commercial.dto.product.GroupProductDTO;
 import spring.server.commercial.dto.product.ProductInfomationDTO;
 import spring.server.commercial.dto.product.ProductInformationDetailsRequestDTO;
+import spring.server.commercial.mapper.product.attribute.AttributeMapper;
+import spring.server.commercial.model.order.StatusOrder;
 import spring.server.commercial.model.product.Attribute;
 import spring.server.commercial.model.product.GroupProduct;
 import spring.server.commercial.model.product.Product;
@@ -38,6 +39,7 @@ public class ProductMapper {
 	private final ProductRepository productRepository;
 	private final UserService userService;
 	private final GroupProductRepository groupProductRepository;
+	private final AttributeMapper attributeMapper;
 
 	public Product updateProductFromDTO(ProductInformationDetailsRequestDTO productInformationDetailsRequestDTO)
 			throws SerialException, SQLException {
@@ -71,9 +73,9 @@ public class ProductMapper {
 					Base64.getDecoder().decode(productInformationDetailsRequestDTO.getDetails()[i].getImage())));
 			List<Attribute> attributes = new ArrayList<>();
 			for (int j = 0; j < productInformationDetailsRequestDTO.getDetails()[i].getAttributes().length; j++) {
-				Attribute a = Attribute.builder().build();
-				a.setValue(productInformationDetailsRequestDTO.getDetails()[i].getAttributes()[j].getValue());
-				a.setName(productInformationDetailsRequestDTO.getDetails()[i].getAttributes()[j].getName());
+				Attribute a = attributeMapper
+						.DTOtoEntity(productInformationDetailsRequestDTO.getDetails()[i].getAttributes()[j]);
+
 				attributes.add(a);
 			}
 			add.setAttributes(attributes);
@@ -122,9 +124,9 @@ public class ProductMapper {
 					Base64.getDecoder().decode(productInformationDetailsRequestDTO.getDetails()[i].getImage())));
 			List<Attribute> attributes = new ArrayList<>();
 			for (int j = 0; j < productInformationDetailsRequestDTO.getDetails()[i].getAttributes().length; j++) {
-				Attribute a = Attribute.builder().build();
-				a.setValue(productInformationDetailsRequestDTO.getDetails()[i].getAttributes()[j].getValue());
-				a.setName(productInformationDetailsRequestDTO.getDetails()[i].getAttributes()[j].getName());
+				Attribute a = attributeMapper
+						.DTOtoEntity(productInformationDetailsRequestDTO.getDetails()[i].getAttributes()[j]);
+
 				attributes.add(a);
 			}
 			add.setAttributes(attributes);
@@ -135,13 +137,14 @@ public class ProductMapper {
 		return product;
 	}
 
-	public static ProductInformationDetailsRequestDTO entityToProductDetailInforamtionDTO(Product product) {
+	public ProductInformationDetailsRequestDTO entityToProductDetailInforamtionDTO(Product product) {
 		ProductInformationDetailsRequestDTO response = ProductInformationDetailsRequestDTO.builder().build();
 		response.setId(product.getId());
 		response.setName(product.getName());
 		response.setDescriber(product.getDescriber());
 		response.setGender(product.getGender());
-		response.setOrders(product.getOrders().size());
+		response.setOrders(
+				product.getOrders().stream().filter(n -> n.getStatusOrder() == StatusOrder.CONFIRMED).toList().size());
 		response.setIdProductType(product.getProductType().getId() + "");
 		response.setImage(
 				Base64.getEncoder().encodeToString(ConvertFile.extractBytesFromBlob(product.getImages().get(0))));
@@ -155,14 +158,13 @@ public class ProductMapper {
 			AttributeGroupDTO atriAttributeGroupDTOs[] = new AttributeGroupDTO[group.getAttributes().size()];
 			for (int j = 0; j < group.getAttributes().size(); j++) {
 				Attribute attribute = group.getAttributes().get(j);
-				AttributeGroupDTO attributeGroupDTO = AttributeGroupDTO.builder().build();
-				attributeGroupDTO.setName(attribute.getName());
-				attributeGroupDTO.setValue(attribute.getValue());
-				atriAttributeGroupDTOs[j] = attributeGroupDTO;
+
+				atriAttributeGroupDTOs[j] = attributeMapper.EntityToDTO(attribute);
 			}
 			GroupProductDTO groupProductDTO = GroupProductDTO.builder().build();
 			groupProductDTO.setInStock(group.getInStock());
 			groupProductDTO.setPrice(group.getPrice());
+			groupProductDTO.setId(group.getId());
 			groupProductDTO
 					.setImage(Base64.getEncoder().encodeToString(ConvertFile.extractBytesFromBlob(group.getImage())));
 			groupProductDTO.setAttributes(atriAttributeGroupDTOs);
@@ -176,7 +178,8 @@ public class ProductMapper {
 	public static ProductInfomationDTO entityToProductInformationDTO(Product product) {
 		return ProductInfomationDTO.builder().id(product.getId()).name(product.getName()).price(product.getPrice())
 				.inStock(product.getInStock()).productType(product.getProductType().getName())
-				.orders(product.getOrders().size())
+				.orders(product.getOrders().stream().filter(n -> n.getStatusOrder() == StatusOrder.CONFIRMED).toList()
+						.size())
 				.image(Base64.getEncoder().encodeToString(ConvertFile.extractBytesFromBlob(product.getImages().get(0))))
 				.build();
 	}

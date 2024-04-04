@@ -4,6 +4,7 @@ import java.sql.SQLException;
 
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,13 +36,14 @@ public class ProductController {
 	@GetMapping("/info/{id}")
 	public ResponseEntity<?> getInfoById(@PathVariable int id) {
 		Product product = productRepository.findById(id).get();
-		return ResponseEntity.ok(ProductMapper.entityToProductDetailInforamtionDTO(product));
+		return ResponseEntity.ok(productMapper.entityToProductDetailInforamtionDTO(product));
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<?> getProductDetailById(@PathVariable int id) {
-		Product product = productRepository.findById(id).get();
-		return ResponseEntity.ok(ProductMapper.entityToProductDetailInforamtionDTO(product));
+		Product product = productService.getByID(id).get();   
+		
+		return ResponseEntity.ok(productMapper.entityToProductDetailInforamtionDTO(product));
 	}
 
 	@PostMapping("/update")
